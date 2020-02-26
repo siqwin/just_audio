@@ -5,6 +5,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -12,6 +13,7 @@ import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.EventLogger;
 import com.google.android.exoplayer2.util.Util;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.EventSink;
@@ -77,6 +79,7 @@ public class AudioPlayer implements MethodCallHandler, Player.EventListener {
 
 		player = new SimpleExoPlayer.Builder(context).build();
 		player.addListener(this);
+		player.addAnalyticsListener(new EventLogger(null));
 	}
 
 	@Override
@@ -224,7 +227,8 @@ public class AudioPlayer implements MethodCallHandler, Player.EventListener {
 		} else if (uri.getPath().toLowerCase().endsWith(".m3u8")) {
 			mediaSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
 		} else {
-			mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+			DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true);
+			mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory, extractorsFactory).createMediaSource(uri);
 		}
 		player.prepare(mediaSource);
 	}
